@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Calculadora Visual</title>
+    <style>
+      body {
+        background: #282c34;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 20px;
+        min-height: 100vh;
+        margin: 0;
+        color: #fff;
+        position: relative;
+      }
+
+      /* Botón Cerrar Sesión en esquina superior derecha */
+      .btn-logout {
+        position: fixed;
+        top: 15px;
+        right: 15px;
+        background-color: #d32f2f;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        user-select: none;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        transition: background-color 0.3s ease;
+        text-decoration: none;
+        z-index: 1000;
+      }
+      .btn-logout:hover {
+        background-color: #b71c1c;
+      }
+
+      .btn-logout span {
+        font-size: 1.3rem;
+      }
+
+      .top-buttons-container {
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        gap: 15px;
+        margin-bottom: 20px;
+      }
+
+      .btn-roulette {
+        background-color: #4caf50;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: background 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        user-select: none;
+      }
+      .btn-roulette:hover {
+        background-color: #388e3c;
+      }
+
+      .calculator {
+        background: #3b3f47;
+        border-radius: 10px;
+        padding: 20px;
+        box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
+        width: 320px;
+      }
+
+      #display {
+        background: #1c1f26;
+        height: 60px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        font-size: 2rem;
+        line-height: 60px;
+        text-align: right;
+        padding: 0 15px;
+        overflow-x: auto;
+        user-select: none;
+      }
+
+      .buttons {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 10px;
+      }
+
+      button {
+        background: #505662;
+        border: none;
+        border-radius: 8px;
+        font-size: 1.4rem;
+        color: white;
+        cursor: pointer;
+        transition: background 0.2s ease;
+        height: 50px;
+        user-select: none;
+      }
+      button:hover {
+        background: #6b7080;
+      }
+      button.operator {
+        background: #f57c00;
+        color: white;
+      }
+      button.operator:hover {
+        background: #e65100;
+      }
+      button.equal {
+        background: #00796b;
+        color: white;
+        grid-column: span 4;
+      }
+      button.equal:hover {
+        background: #004d40;
+      }
+      button.clear {
+        background: #d32f2f;
+        color: white;
+        grid-column: span 3;
+      }
+      button.clear:hover {
+        background: #b71c1c;
+      }
+      button.backspace {
+        background: #616161;
+        color: white;
+      }
+      button.backspace:hover {
+        background: #424242;
+      }
+      button.zero {
+        grid-column: span 2;
+      }
+      .empty {
+        background: transparent;
+        cursor: default;
+        box-shadow: none;
+      }
+    </style>
+  </head>
+  <body>
+    <a href="/logout" class="btn-logout"> <span>⏻</span> Cerrar Sesión </a>
+
+    <div class="top-buttons-container">
+      <a href="/roulette" class="btn-roulette">
+        🎲 Ir a la Ruleta de Exposición
+      </a>
+    </div>
+
+    <div class="calculator">
+      <div id="display">0</div>
+
+      <div class="buttons">
+        <button class="clear" id="clear">C</button>
+        <button class="backspace" id="backspace">←</button>
+
+        <button data-num="7">7</button>
+        <button data-num="8">8</button>
+        <button data-num="9">9</button>
+        <button class="operator" data-op="/">÷</button>
+
+        <button data-num="4">4</button>
+        <button data-num="5">5</button>
+        <button data-num="6">6</button>
+        <button class="operator" data-op="*">×</button>
+
+        <button data-num="1">1</button>
+        <button data-num="2">2</button>
+        <button data-num="3">3</button>
+        <button class="operator" data-op="-">−</button>
+
+        <button class="zero" data-num="0">0</button>
+        <button data-num=".">.</button>
+        <button class="operator" data-op="+">+</button>
+
+        <button class="equal" id="equals">=</button>
+      </div>
+    </div>
+
+    <script>
+      const display = document.getElementById("display");
+
+      let currentInput = "";
+      let lastInputIsOperator = false;
+
+      function updateDisplay() {
+        display.textContent = currentInput || "0";
+      }
+
+      function addNumber(num) {
+        if (num === "." && currentInput.endsWith(".")) return;
+        const tokens = currentInput.split(/[\+\-\*\/]/);
+        const lastToken = tokens[tokens.length - 1];
+        if (num === "." && lastToken.includes(".")) return;
+
+        currentInput += num;
+        lastInputIsOperator = false;
+        updateDisplay();
+      }
+
+      function addOperator(op) {
+        if (currentInput === "") return;
+        if (lastInputIsOperator) {
+          currentInput = currentInput.slice(0, -1) + op;
+        } else {
+          currentInput += op;
+          lastInputIsOperator = true;
+        }
+        updateDisplay();
+      }
+
+      function clearAll() {
+        currentInput = "";
+        lastInputIsOperator = false;
+        updateDisplay();
+      }
+
+      function backspace() {
+        if (currentInput.length > 0) {
+          currentInput = currentInput.slice(0, -1);
+          lastInputIsOperator = /[\+\-\*\/]$/.test(currentInput);
+          updateDisplay();
+        }
+      }
+
+      function calculate() {
+        if (currentInput === "") return;
+        try {
+          let result = Function('"use strict";return (' + currentInput + ")")();
+          if (result === Infinity || isNaN(result)) {
+            display.textContent = "Error";
+            currentInput = "";
+          } else {
+            currentInput = result.toString();
+            updateDisplay();
+          }
+          lastInputIsOperator = false;
+        } catch {
+          display.textContent = "Error";
+          currentInput = "";
+          lastInputIsOperator = false;
+        }
+      }
+
+      document.querySelectorAll("[data-num]").forEach((btn) => {
+        btn.addEventListener("click", () =>
+          addNumber(btn.getAttribute("data-num"))
+        );
+      });
+
+      document.querySelectorAll(".operator").forEach((btn) => {
+        btn.addEventListener("click", () =>
+          addOperator(btn.getAttribute("data-op"))
+        );
+      });
+
+      document.getElementById("clear").addEventListener("click", (e) => {
+        e.preventDefault();
+        clearAll();
+      });
+
+      document.getElementById("backspace").addEventListener("click", (e) => {
+        e.preventDefault();
+        backspace();
+      });
+
+      document.getElementById("equals").addEventListener("click", (e) => {
+        e.preventDefault();
+        calculate();
+      });
+
+      updateDisplay();
+    </script>
+  </body>
+</html>

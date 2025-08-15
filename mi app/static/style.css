@@ -1,0 +1,33 @@
+body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  background-color: #f4f4f4;
+}
+
+.calculator {
+  margin: auto;
+  display: inline-block;
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 0 10px #aaa;
+}
+
+#display {
+  width: 100%;
+  font-size: 24px;
+  margin-bottom: 10px;
+  padding: 10px;
+}
+
+.buttons button {
+  width: 50px;
+  height: 50px;
+  margin: 5px;
+  font-size: 18px;
+}
+
+.clear {
+  background-color: red;
+  color: white;
+}

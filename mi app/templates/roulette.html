@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Ruleta de Exposición</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #282c34;
+        color: white;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+        position: relative;
+      }
+
+      h1 {
+        margin-bottom: 10px;
+      }
+
+      canvas {
+        margin: 20px 0;
+      }
+
+      .triangle {
+        width: 0;
+        height: 0;
+        border-left: 20px solid transparent;
+        border-right: 20px solid transparent;
+        border-top: 30px solid red; /* Apunta hacia abajo */
+        margin-bottom: -10px;
+      }
+
+      #result {
+        font-size: 1.5rem;
+        margin-top: 20px;
+        color: #4caf50;
+      }
+
+      input,
+      button {
+        margin: 5px;
+        padding: 8px;
+        border-radius: 5px;
+        font-size: 1rem;
+        border: none;
+      }
+
+      input {
+        width: 200px;
+      }
+
+      button {
+        background-color: #f57c00;
+        color: white;
+        cursor: pointer;
+      }
+
+      button:hover {
+        background-color: #e65100;
+      }
+
+      .back {
+        margin-top: 20px;
+        background-color: #555;
+      }
+
+      .back:hover {
+        background-color: #333;
+      }
+
+      /* Botón Cerrar Sesión en esquina superior derecha */
+      .btn-logout {
+        position: fixed;
+        top: 15px;
+        right: 15px;
+        background-color: #d32f2f;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1rem;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        user-select: none;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+        transition: background-color 0.3s ease;
+        text-decoration: none;
+        z-index: 1000;
+      }
+      .btn-logout:hover {
+        background-color: #b71c1c;
+      }
+
+      .btn-logout span {
+        font-size: 1.3rem;
+      }
+    </style>
+  </head>
+  <body>
+    <a href="/logout" class="btn-logout"> <span>⏻</span> Cerrar Sesión </a>
+
+    <h1>🎯 Ruleta de Exposición</h1>
+
+    <div>
+      <input type="text" id="nameInput" placeholder="Nombre del estudiante" />
+      <button onclick="addName()">Agregar</button>
+      <button onclick="clearNames()">Limpiar</button>
+    </div>
+
+    <div class="triangle"></div>
+    <canvas id="wheel" width="400" height="400"></canvas>
+    <button onclick="spin()">Girar Ruleta</button>
+
+    <div id="result"></div>
+
+    <a href="/calculadora">
+      <button class="back">⬅ Volver a la Calculadora</button>
+    </a>
+
+    <script>
+      let names = [];
+      let angle = 0;
+      let isSpinning = false;
+
+      const canvas = document.getElementById("wheel");
+      const ctx = canvas.getContext("2d");
+      const result = document.getElementById("result");
+
+      function drawWheel() {
+        const radius = canvas.width / 2;
+        const cx = canvas.width / 2;
+        const cy = canvas.height / 2;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        if (names.length === 0) return;
+
+        const anglePerSection = (2 * Math.PI) / names.length;
+
+        for (let i = 0; i < names.length; i++) {
+          const startAngle = angle + i * anglePerSection;
+          const endAngle = startAngle + anglePerSection;
+
+          ctx.beginPath();
+          ctx.moveTo(cx, cy);
+          ctx.arc(cx, cy, radius, startAngle, endAngle);
+          ctx.fillStyle = `hsl(${(i * 360) / names.length}, 70%, 60%)`;
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.save();
+          ctx.translate(cx, cy);
+          ctx.rotate(startAngle + anglePerSection / 2);
+          ctx.textAlign = "right";
+          ctx.fillStyle = "black";
+          ctx.font = "bold 16px Arial";
+          ctx.fillText(names[i], radius - 10, 5);
+          ctx.restore();
+        }
+      }
+
+      function spin() {
+        if (names.length === 0 || isSpinning) return;
+        isSpinning = true;
+
+        const randomIndex = Math.floor(Math.random() * names.length);
+        const anglePerSection = (2 * Math.PI) / names.length;
+        const stopAngle =
+          2 * Math.PI * 5 +
+          (Math.PI * 1.5 - randomIndex * anglePerSection - anglePerSection / 2); // apunta hacia arriba
+
+        const duration = 4000;
+        const start = performance.now();
+
+        function animate(time) {
+          const elapsed = time - start;
+          const progress = Math.min(elapsed / duration, 1);
+          angle = stopAngle * easeOutCubic(progress);
+
+          drawWheel();
+
+          if (progress < 1) {
+            requestAnimationFrame(animate);
+          } else {
+            isSpinning = false;
+            result.textContent = `🎉 Le toca exponer a: ${names[randomIndex]} 🎤`;
+          }
+        }
+
+        requestAnimationFrame(animate);
+      }
+
+      function easeOutCubic(t) {
+        return 1 - Math.pow(1 - t, 3);
+      }
+
+      function addName() {
+        const input = document.getElementById("nameInput");
+        const name = input.value.trim();
+        if (name) {
+          names.push(name);
+          input.value = "";
+          drawWheel();
+          result.textContent = "";
+        }
+      }
+
+      function clearNames() {
+        names = [];
+        result.textContent = "";
+        drawWheel();
+      }
+
+      drawWheel();
+    </script>
+  </body>
+</html>
